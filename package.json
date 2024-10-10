@@ -1,0 +1,9 @@
+{
+  "name": "applemusic-like-lyrics",
+  "private": true,
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.1",
+    "lerna": "^8.1.8"
+  }
+}

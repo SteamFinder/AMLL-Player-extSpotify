@@ -1,0 +1,19 @@
+{
+	"include": ["./src/**/*.ts"],
+	"compilerOptions": {
+		"target": "ESNext",
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"module": "ESNext",
+		"types": ["vite-plugin-glsl/ext"],
+		"strict": true,
+		"moduleResolution": "bundler",
+		"resolveJsonModule": true,
+		"strictNullChecks": true,
+		"downlevelIteration": true,
+		"allowSyntheticDefaultImports": true,
+		"allowJs": false,
+		"stripInternal": true,
+		"noImplicitOverride": true,
+		"skipLibCheck": true
+	}
+}
