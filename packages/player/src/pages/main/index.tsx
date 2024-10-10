@@ -1,6 +1,5 @@
 import { HamburgerMenuIcon } from "@radix-ui/react-icons";
 import {
-	Badge,
 	Box,
 	Card,
 	Container,
@@ -13,19 +12,15 @@ import {
 	Text,
 } from "@radix-ui/themes";
 import { useLiveQuery } from "dexie-react-hooks";
-import { useAtomValue } from "jotai";
 import type { FC } from "react";
 import { Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import { NewPlaylistButton } from "../../components/NewPlaylistButton";
 import { PlaylistCover } from "../../components/PlaylistCover";
 import { db } from "../../dexie";
-import { router } from "../../router";
-import { updateInfoAtom } from "../../states/updater";
 
 export const MainPage: FC = () => {
 	const playlists = useLiveQuery(() => db.playlists.toArray());
-	const updateInfo = useAtomValue(updateInfoAtom);
 
 	return (
 		<Container
@@ -37,20 +32,7 @@ export const MainPage: FC = () => {
 			<Flex direction="row" align="center" wrap="wrap" mt="5">
 				<Box asChild flexGrow="1">
 					<Heading wrap="nowrap" my="4">
-						AMLL Player
-						{updateInfo && (
-							<Badge
-								onClick={() => router.navigate("/settings#updater")}
-								radius="full"
-								style={{
-									cursor: "pointer",
-								}}
-								color="indigo"
-								ml="2"
-							>
-								<Trans i18nKey="page.main.updateAvailableTag">有可用更新</Trans>
-							</Badge>
-						)}
+						AMLL Player + extSpotify
 					</Heading>
 				</Box>
 				<Flex gap="1" wrap="wrap">
