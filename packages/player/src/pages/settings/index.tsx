@@ -352,6 +352,7 @@ export const SettingsPage: FC = () => {
 	const fftDataRange = useAtomValue(fftDataRangeAtom);
 	const appVersion = useAtomValue(appVersionAtom);
 
+	// extSpotify
 	// Reg
 	const [extSpotifyClientID, setExtSpotifyClientID] = useAtom(extSpotifyClientIDAtom);
 	const [extSpotifyRedirectUrl, setExtSpotifyRedirectUrl] = useAtom(extSpotifyRedirectUrlAtom);
@@ -370,7 +371,6 @@ export const SettingsPage: FC = () => {
 	const accessToken = extSpotifyAccessToken;
 
 	// 通过OAuth2.0获取Access Token
-
 	function getAuth() {
 		var client_id = extSpotifyClientID;
 		var redirect_uri = extSpotifyRedirectUrl;
@@ -387,7 +387,11 @@ export const SettingsPage: FC = () => {
 	}
 
 	// 轮询SpotifyAPI
+
+	// 防止重复使用钩子
 	var oldMusicName = "";
+	var oldIsPlaying = false;
+
 	async function getCurrentPlayingTrack(accessToken: string) {
 		const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
 			method: 'GET',
@@ -398,7 +402,7 @@ export const SettingsPage: FC = () => {
 
 		if (response.status === 200) {
 			const jsonData = await response.json();
-			console.log('extSpotify:从SpotifyAPI读取数据成功');
+			console.log('extSpotify::从SpotifyAPI读取数据成功');
 
 			// 获取歌词
 			if (oldMusicName != jsonData.item.name) {
@@ -411,26 +415,39 @@ export const SettingsPage: FC = () => {
 				setMusicAlbumName(jsonData.item.album.name);
 				const MusicArtistsInfo = { name: jsonData.item.artists[0].name, id: jsonData.item.artists[0].id };
 				setMusicArtists([MusicArtistsInfo]);
-				setMusicPlaying(true);
 
 				const lyricsResponse = await fetch('https://raw.githubusercontent.com/Steve-xmh/amll-ttml-db/refs/heads/main/spotify-lyrics/' + jsonData.item.id + '.ttml', {
 					method: 'GET',
 				});
 				if (lyricsResponse.status === 200) {
+					// 获取到歌词后进行转换
 					const lyricsData = await lyricsResponse.text();
 					const parsedResult = parseTTML(lyricsData).lines;
 					setMusicLyricLines(parsedResult);
+				} else {
+					// 未获取到歌词时设置为空
+					setMusicLyricLines([]);
 				}
 			}
 
-			setMusicPlayingPosition(jsonData.progress_ms);
+			// 刷新进度条 由于延迟 进行300ms的补偿
+			setMusicPlayingPosition(jsonData.progress_ms + 300);
+			// 判断是否在播放 同时注意不要循环调用钩子
+
+			if (jsonData.is_playing && !oldIsPlaying) {
+				setMusicPlaying(true);
+				oldIsPlaying = true;
+			} else if (!jsonData.is_playing && oldIsPlaying) {
+				setMusicPlaying(false);
+				oldIsPlaying = false;
+			}
 
 			setTimeout(() => {
 				getCurrentPlayingTrack(accessToken);
-			}, 200);
+			}, 300);
 
 		} else if (response.status === 204) {
-			console.log('extSpotify::未播放歌曲');
+			console.log('extSpotify::当前未播放歌曲');
 			setMusicPlaying(false);
 			return null;
 		} else {
@@ -900,10 +917,10 @@ export const SettingsPage: FC = () => {
 				<Flex direction="row" align="center" gap="4" my="2">
 					<Flex direction="column" flexGrow="1">
 						<Text as="div">
-								Access Token
+							Access Token
 						</Text>
 						<Text as="div" color="gray" size="2" className={styles.desc}>
-								callback地址中含的Access Token
+							callback地址中含的Access Token
 						</Text>
 					</Flex>
 					<TextField.Root
@@ -917,10 +934,10 @@ export const SettingsPage: FC = () => {
 				<Flex direction="row" align="center" gap="4" my="2">
 					<Flex direction="column" flexGrow="1">
 						<Text as="div">
-								MusicCover
+							MusicCover
 						</Text>
 						<Text as="div" color="gray" size="2" className={styles.desc}>
-								MusicCover
+							MusicCover
 						</Text>
 					</Flex>
 					<TextField.Root
@@ -992,10 +1009,8 @@ export const SettingsPage: FC = () => {
 				{/* biome-ignore lint/complexity/useOptionalChain: <explanation> */}
 				{/* updater已移除 */}
 				<Text as="div">
-				<Trans i18nKey="page.about.credits">
 					Updater已移除, 请手动前往Github页面下载最新版本
-				</Trans>
-			</Text>
+				</Text>
 			</Suspense>
 		</Container>
 	);

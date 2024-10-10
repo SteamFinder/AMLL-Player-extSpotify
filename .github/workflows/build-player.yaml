@@ -190,7 +190,7 @@ jobs:
         run: |
           export NDK_HOME=$ANDROID_NDK_HOME
           export JAVA_HOME=$JAVA_HOME_17_X64
-          pnpm -F player tauri android build --split-per-abi
+          pnpm -F player tauri android build --apk --target aarch64
       - name: 上传产物到 Action Artifact
         uses: actions/upload-artifact@v3
         with:
