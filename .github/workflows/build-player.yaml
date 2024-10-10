@@ -116,7 +116,6 @@ jobs:
         with:
           projectPath: packages/player
           tagName: ${{ github.ref_name }}-player-dev
-          includeUpdaterJson: true
           releaseName: AMLL Player ${{ github.ref_name }} branch development build
           releaseBody: |
             Latest ${{ github.ref_name }} branch development build.
