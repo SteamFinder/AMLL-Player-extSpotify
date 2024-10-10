@@ -12,7 +12,6 @@ import styles from "./App.module.css";
 import { AMLLWrapper } from "./components/AMLLWrapper";
 import { LocalMusicContext } from "./components/LocalMusicContext";
 import { NowPlayingBar } from "./components/NowPlayingBar";
-import { UpdateContext } from "./components/UpdateContext";
 import { WSProtocolMusicContext } from "./components/WSProtocolMusicContext";
 import "./i18n";
 import { router } from "./router";
@@ -63,7 +62,6 @@ function App() {
 			{musicContextMode === MusicContextMode.WSProtocol && (
 				<WSProtocolMusicContext />
 			)}
-			<UpdateContext />
 			<Theme
 				appearance="dark"
 				panelBackground="solid"
