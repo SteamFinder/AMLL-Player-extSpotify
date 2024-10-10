@@ -22,8 +22,7 @@
 			"icons/512x512@2x.png",
 			"icons/icon.icns",
 			"icons/icon.ico"
-		],
-		"createUpdaterArtifacts": true
+		]
 	},
 	"productName": "AMLL Player",
 	"version": "0.0.1",
