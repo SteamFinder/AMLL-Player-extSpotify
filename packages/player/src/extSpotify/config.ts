@@ -47,6 +47,13 @@ export const extSpotifyIntervalAtom = atomWithStorage(
 	"extSpotifyIntervalAtom",
 	800,
 );
+/**
+ * Spotify API时间轴修正 默认100(ms)
+ */
+export const extSpotifyDelayAtom = atomWithStorage(
+	"extSpotifyDelayAtom",
+	100,
+);
 
 
 /*

@@ -39,6 +39,7 @@ import {
 import {
     extSpotifyAccessTokenAtom,
     extSpotifyClientIDAtom,
+    extSpotifyDelayAtom,
     extSpotifyIntervalAtom,
     extSpotifyRedirectUrlAtom,
     extSpotifySwitchAtom,
@@ -367,6 +368,7 @@ export const SettingsPage: FC = () => {
     const [extSpotifyAccessToken, setExtSpotifyAccessToken] = useAtom(
         extSpotifyAccessTokenAtom,
     );
+    const [extSpotifyDelay, setExtSpotifyDelay] = useAtom(extSpotifyDelayAtom);
 
     // Playing
     const [musicCover, setMusicCover] = useAtom(musicCoverAtom);
@@ -488,8 +490,8 @@ export const SettingsPage: FC = () => {
                 }
             }
 
-            // 刷新进度条 由于延迟 进行 extSpotifyInterval - ms 的补偿
-            setMusicPlayingPosition(jsonData.progress_ms + extSpotifyInterval);
+            // 刷新进度条 由于延迟 进行 50ms 的补偿
+            setMusicPlayingPosition(jsonData.progress_ms + 50);
             // 判断是否在播放 同时注意不要循环调用钩子
 
             if (jsonData.is_playing && !oldIsPlaying) {
@@ -1000,6 +1002,22 @@ export const SettingsPage: FC = () => {
                     <TextField.Root
                         value={extSpotifyInterval}
                         onChange={(e) => setExtSpotifyInterval(Number(e.currentTarget.value))}
+                    />
+                    ms
+                </Flex>
+            </Card>
+
+            <Card mt="2">
+                <Flex direction="row" align="center" gap="4" my="2">
+                    <Flex direction="column" flexGrow="1">
+                        <Text as="div">Spotify时间轴修正</Text>
+                        <Text as="div" color="gray" size="2" className={styles.desc}>
+                            由于从API获取信息存在延迟, 需要进行修正
+                        </Text>
+                    </Flex>
+                    <TextField.Root
+                        value={extSpotifyDelay}
+                        onChange={(e) => setExtSpotifyDelay(Number(e.currentTarget.value))}
                     />
                     ms
                 </Flex>
