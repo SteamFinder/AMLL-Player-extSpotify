@@ -407,7 +407,7 @@ export const SettingsPage: FC = () => {
     // 轮询 SpotifyAPI
 
     // 防止重复使用钩子
-    var oldMusicName = "";
+    var oldMusicID = "";
     var oldIsPlaying = false;
 
     async function getCurrentPlayingTrack(accessToken: string) {
@@ -426,8 +426,8 @@ export const SettingsPage: FC = () => {
             console.log("extSpotify::从SpotifyAPI读取数据成功");
 
             // 获取歌词
-            if (oldMusicName != jsonData.item.name) {
-                oldMusicName = jsonData.item.name;
+            if (oldMusicID != jsonData.item.id) {
+                oldMusicID = jsonData.item.id;
 
                 setMusicCover(jsonData.item.album.images[0].url);
                 setMusicDuration(jsonData.item.duration_ms);
