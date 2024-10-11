@@ -24,7 +24,7 @@ import {
 } from "@applemusic-like-lyrics/react-full";
 
 // extSpotify
-import {parseTTML} from "@applemusic-like-lyrics/lyric";
+import { parseTTML } from "@applemusic-like-lyrics/lyric";
 import {
     musicAlbumNameAtom,
     musicArtistsAtom,
@@ -38,11 +38,12 @@ import {
 import {
     extSpotifyAccessTokenAtom,
     extSpotifyClientIDAtom,
+    extSpotifyIntervalAtom,
     extSpotifyRedirectUrlAtom,
     extSpotifySwitchAtom,
 } from "../../extSpotify/config";
 
-import {ArrowLeftIcon} from "@radix-ui/react-icons";
+import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import {
     Box,
     Button,
@@ -59,9 +60,9 @@ import {
     TextField,
     type TextProps,
 } from "@radix-ui/themes";
-import {getVersion} from "@tauri-apps/api/app";
-import {type WritableAtom, atom, useAtom, useAtomValue} from "jotai";
-import {loadable} from "jotai/utils";
+import { getVersion } from "@tauri-apps/api/app";
+import { type WritableAtom, atom, useAtom, useAtomValue } from "jotai";
+import { loadable } from "jotai/utils";
 import {
     type ComponentProps,
     type FC,
@@ -72,10 +73,10 @@ import {
     useMemo,
     useState,
 } from "react";
-import {Trans, useTranslation} from "react-i18next";
-import {branch, commit} from "virtual:git-metadata-plugin";
+import { Trans, useTranslation } from "react-i18next";
+import { branch, commit } from "virtual:git-metadata-plugin";
 import resources from "virtual:i18next-loader";
-import {router} from "../../router";
+import { router } from "../../router";
 import {
     LyricPlayerImplementation,
     advanceLyricDynamicLyricTimeAtom,
@@ -85,7 +86,7 @@ import {
     lyricPlayerImplementationAtom,
     showStatJSFrameAtom,
 } from "../../states";
-import {restartApp} from "../../utils/player";
+import { restartApp } from "../../utils/player";
 import styles from "./index.module.css";
 
 const SettingEntry: FC<
@@ -93,7 +94,7 @@ const SettingEntry: FC<
         label: string;
         description?: string;
     }>
-> = ({label, description, children}) => {
+> = ({ label, description, children }) => {
     return (
         <Card mt="2">
             <Flex direction="row" align="center" gap="4">
@@ -114,7 +115,7 @@ const NumberSettings: FC<
         configAtom: WritableAtom<number, [number], void>;
     } & ComponentProps<typeof SettingEntry> &
     Omit<TextField.RootProps, "value" | "onChange">
-> = ({label, description, configAtom, ...props}) => {
+> = ({ label, description, configAtom, ...props }) => {
     const [value, setValue] = useAtom(configAtom);
 
     return (
@@ -136,22 +137,22 @@ const SwitchSettings: FC<
         configAtom: WritableAtom<boolean, [boolean], void>;
     } & ComponentProps<typeof SettingEntry> &
     Omit<SwitchProps, "value" | "onChange">
-> = ({label, description, configAtom}) => {
+> = ({ label, description, configAtom }) => {
     const [value, setValue] = useAtom(configAtom);
 
     return (
         <SettingEntry label={label} description={description}>
-            <Switch checked={value} onCheckedChange={setValue}/>
+            <Switch checked={value} onCheckedChange={setValue} />
         </SettingEntry>
     );
 };
 
 function SelectSettings<T extends string>({
-                                              label,
-                                              description,
-                                              menu,
-                                              configAtom,
-                                          }: {
+    label,
+    description,
+    menu,
+    configAtom,
+}: {
     configAtom: WritableAtom<T, [T], void>;
     menu: {
         label: string;
@@ -163,7 +164,7 @@ function SelectSettings<T extends string>({
     return (
         <SettingEntry label={label} description={description}>
             <Select.Root value={value} onValueChange={setValue}>
-                <Select.Trigger/>
+                <Select.Trigger />
                 <Select.Content>
                     {menu.map((item) => (
                         <Select.Item key={item.value} value={item.value}>
@@ -177,12 +178,12 @@ function SelectSettings<T extends string>({
 }
 
 function SliderSettings<T extends number | number[]>({
-                                                         label,
-                                                         description,
-                                                         configAtom,
-                                                         children,
-                                                         ...rest
-                                                     }: PropsWithChildren<{
+    label,
+    description,
+    configAtom,
+    children,
+    ...rest
+}: PropsWithChildren<{
     configAtom: WritableAtom<T, [T], void>;
 }> &
     ComponentProps<typeof SettingEntry> &
@@ -203,7 +204,7 @@ function SliderSettings<T extends number | number[]>({
     );
 }
 
-const SubTitle: FC<PropsWithChildren<TextProps>> = ({children, ...props}) => {
+const SubTitle: FC<PropsWithChildren<TextProps>> = ({ children, ...props }) => {
     return (
         <Text weight="bold" size="4" my="4" as="div" {...props}>
             {children}
@@ -216,7 +217,7 @@ const LyricFontSetting: FC = () => {
     const [fontWeight, setFontWeight] = useAtom(lyricFontWeightAtom);
     const [letterSpacing, setLetterSpacing] = useAtom(lyricLetterSpacingAtom);
     const [preview, setPreview] = useState("字体预览 Font Preview");
-    const {t} = useTranslation();
+    const { t } = useTranslation();
 
     useLayoutEffect(() => {
         setPreview(
@@ -354,6 +355,8 @@ export const SettingsPage: FC = () => {
 
     // extSpotify
     // Reg
+    const [extSpotifySwitch, setExtSpotifySwitch] = useAtom(extSpotifySwitchAtom);
+    const [extSpotifyInterval, setExtSpotifyInterval] = useAtom(extSpotifyIntervalAtom);
     const [extSpotifyClientID, setExtSpotifyClientID] = useAtom(
         extSpotifyClientIDAtom,
     );
@@ -430,27 +433,54 @@ export const SettingsPage: FC = () => {
                 };
                 setMusicArtists([MusicArtistsInfo]);
 
-                const lyricsResponse = await fetch(
-                    "https://raw.githubusercontent.com/Steve-xmh/amll-ttml-db/refs/heads/main/spotify-lyrics/" +
-                    jsonData.item.id +
-                    ".ttml",
-                    {
-                        method: "GET",
-                    },
-                );
-                if (lyricsResponse.status === 200) {
-                    // 获取到歌词后进行转换
-                    const lyricsData = await lyricsResponse.text();
-                    const parsedResult = parseTTML(lyricsData).lines;
-                    setMusicLyricLines(parsedResult);
-                } else {
+                try {
+                    const lyricsResponse = await fetch(
+                        "https://raw.githubusercontent.com/Steve-xmh/amll-ttml-db/refs/heads/main/spotify-lyrics/" +
+                        jsonData.item.id +
+                        ".ttml",
+                        {
+                            method: "GET",
+                        },
+                    );
+                    if (lyricsResponse.status === 200) {
+                        // 获取到歌词后进行转换
+                        const lyricsData = await lyricsResponse.text();
+                        const parsedResult = parseTTML(lyricsData).lines;
+                        setMusicLyricLines(parsedResult);
+                    } else {
+                        setMusicLyricLines([]);
+                        console.log("extSoptify::Github-未搜索到/Proxy-未尝试");
+                    }
+                } catch (error) {
                     // 未获取到歌词时设置为空
-                    setMusicLyricLines([]);
+                    console.log("extSpotify::Github-访问失败/Proxy-未尝试")
+                    try {
+                        const lyricsProxyResponse = await fetch(
+                            "https://cf.ghproxy.cc/" +
+                            "https://raw.githubusercontent.com/Steve-xmh/amll-ttml-db/refs/heads/main/spotify-lyrics/" +
+                            jsonData.item.id +
+                            ".ttml",
+                            {
+                                method: "GET",
+                            },
+                        );
+                        if (lyricsProxyResponse.status === 200) {
+                            const lyricsProxyData = await lyricsProxyResponse.text();
+                            const parsedProxyResult = parseTTML(lyricsProxyData).lines;
+                            setMusicLyricLines(parsedProxyResult);
+                        } else {
+                            setMusicLyricLines([]);
+                            console.log("extSoptify::Github-访问失败/Proxy-未搜索到");
+                        }
+                    } catch (error) {
+                        setMusicLyricLines([]);
+                        console.log("extSpotify::Github-访问失败/Proxy-访问失败")
+                    }
                 }
             }
 
-            // 刷新进度条 由于延迟 进行 300ms 的补偿
-            setMusicPlayingPosition(jsonData.progress_ms + 300);
+            // 刷新进度条 由于延迟 进行 extSpotifyInterval - ms 的补偿
+            setMusicPlayingPosition(jsonData.progress_ms + extSpotifyInterval);
             // 判断是否在播放 同时注意不要循环调用钩子
 
             if (jsonData.is_playing && !oldIsPlaying) {
@@ -471,18 +501,21 @@ export const SettingsPage: FC = () => {
         }
     }
 
+    // 修复轮询在 Android 设备上的问题
     useEffect(() => {
-        if (accessToken) {
+        console.log("extSpotifySwitch::检测到功能开关变化");
+        console.log(extSpotifySwitch);
+        if (extSpotifySwitch) {
             const intervalId = setInterval(() => {
                 getCurrentPlayingTrack(accessToken);
-            }, 1000); // 每秒调用一次
+            }, extSpotifyInterval); // 每0.5秒调用一次
 
             return () => clearInterval(intervalId); // 清除定时器
         }
-    }, [accessToken]);
+    }, [extSpotifySwitch]);
 
     const [updating] = useState(false);
-    const {t, i18n} = useTranslation();
+    const { t, i18n } = useTranslation();
 
     const supportedLanguagesMenu = useMemo(() => {
         const menu = Object.keys(resources).map((langId) => {
@@ -610,7 +643,7 @@ export const SettingsPage: FC = () => {
         >
             <Flex align="end" mt="7" gap="4">
                 <Button variant="soft" onClick={() => history.back()}>
-                    <ArrowLeftIcon/>
+                    <ArrowLeftIcon />
                     <Trans i18nKey="common.page.back"> 返回 </Trans>
                 </Button>
             </Flex>
@@ -668,7 +701,7 @@ export const SettingsPage: FC = () => {
                 configAtom={lyricPlayerImplementationAtom}
             />
 
-            <LyricFontSetting/>
+            <LyricFontSetting />
 
             <SwitchSettings
                 label={t(
@@ -764,7 +797,7 @@ export const SettingsPage: FC = () => {
                 configAtom={showMusicAlbumAtom}
             />
 
-            <Box height="1em"/>
+            <Box height="1em" />
 
             <SwitchSettings
                 label={t(
@@ -785,7 +818,7 @@ export const SettingsPage: FC = () => {
                 configAtom={showBottomControlAtom}
             />
 
-            <Box height="1em"/>
+            <Box height="1em" />
 
             <SelectSettings
                 label={t(
@@ -800,7 +833,7 @@ export const SettingsPage: FC = () => {
                 configAtom={playerControlsTypeAtom}
             />
 
-            <Box height="1em"/>
+            <Box height="1em" />
 
             <SelectSettings
                 label={t(
@@ -890,15 +923,15 @@ export const SettingsPage: FC = () => {
                 configAtom={lyricBackgroundStaticModeAtom}
             />
 
-            <Box height="1em"/>
+            <Box height="1em" />
 
             {/* 扩展 Spotify BEGIN */}
 
-            <SubTitle>extSpotify 设置 </SubTitle>
+            <SubTitle>extSpotify 设置</SubTitle>
 
             <SwitchSettings
                 label={"启用Spotify Player API"}
-                description={"开启后可以同步Spotify播放的歌曲"}
+                description={"开启后可以同步Spotify播放的歌曲, 请先开启再同步状态"}
                 configAtom={extSpotifySwitchAtom}
             />
 
@@ -937,7 +970,7 @@ export const SettingsPage: FC = () => {
                     <Flex direction="column" flexGrow="1">
                         <Text as="div">Access Token</Text>
                         <Text as="div" color="gray" size="2" className={styles.desc}>
-                            callback 地址中含的 Access Token
+                            在Spotify平台设置的 callback 地址
                         </Text>
                     </Flex>
                     <TextField.Root
@@ -950,9 +983,25 @@ export const SettingsPage: FC = () => {
             <Card mt="2">
                 <Flex direction="row" align="center" gap="4" my="2">
                     <Flex direction="column" flexGrow="1">
-                        <Text as="div">MusicCover</Text>
+                        <Text as="div">轮询间隔</Text>
                         <Text as="div" color="gray" size="2" className={styles.desc}>
-                            MusicCover
+                            设置从Spotify服务器获取信息的间隔
+                        </Text>
+                    </Flex>
+                    <TextField.Root
+                        value={extSpotifyInterval}
+                        onChange={(e) => setExtSpotifyInterval(Number(e.currentTarget.value))}
+                    />
+                    ms
+                </Flex>
+            </Card>
+
+            <Card mt="2">
+                <Flex direction="row" align="center" gap="4" my="2">
+                    <Flex direction="column" flexGrow="1">
+                        <Text as="div">歌曲封面设置</Text>
+                        <Text as="div" color="gray" size="2" className={styles.desc}>
+                            在此测试设置封面图
                         </Text>
                     </Flex>
                     <TextField.Root
@@ -972,7 +1021,7 @@ export const SettingsPage: FC = () => {
 
             {/* Spotify END */}
 
-            <Box height="1em"/>
+            <Box height="1em" />
 
             <SubTitle>
                 <Trans i18nKey="page.settings.others.subtitle"> 杂项 </Trans>
@@ -1002,21 +1051,21 @@ export const SettingsPage: FC = () => {
                     歌词页面开发用工具
                 </Trans>
             </Button>
-            <Separator my="3" size="4"/>
+            <Separator my="3" size="4" />
             <SubTitle>
                 <Trans i18nKey="page.about.subtitle"> 关于 </Trans>
             </SubTitle>
             <Text as="div">Apple Music-like Lyrics Player</Text>
-            <Text as="div" style={{opacity: "0.5"}}>
+            <Text as="div" style={{ opacity: "0.5" }}>
                 {appVersion.state === "hasData" ? `${appVersion.data} - ` : ""}
                 {commit.substring(0, 7)} - {branch}
             </Text>
             <Text as="div">
                 <Trans i18nKey="page.about.credits">
                     由 SteveXMH 及其所有 Github 协作者共同开发
-                    <br/>
+                    <br />
                     extSpotify 为 AMLL Player 的扩展插件, 不属于 AMLL Player 原生程序
-                    <br/>
+                    <br />
                     extSpotify 由 SteamFinder 开发, 基于 AMLL Player
                 </Trans>
             </Text>

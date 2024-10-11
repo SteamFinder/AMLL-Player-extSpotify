@@ -4,7 +4,6 @@
  * 如无特殊注明，此处所有配置均会被存储在 localStorage 中
  */
 
-import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
 // ======================== extSpotify配置 ========================
@@ -18,7 +17,7 @@ export const extSpotifySwitchAtom = atomWithStorage(
 );
 
 /**
- * Spotify的client id
+ * Spotify开发者平台上设置的Client ID
  */
 export const extSpotifyClientIDAtom = atomWithStorage(
 	"extSpotifyClientIDAtom",
@@ -26,7 +25,7 @@ export const extSpotifyClientIDAtom = atomWithStorage(
 );
 
 /**
- * Spotify的redirect url
+ * Spotify开发者平台上设置的Callback Url
  */
 export const extSpotifyRedirectUrlAtom = atomWithStorage(
 	"extSpotifyRedirectUrlAtom",
@@ -34,11 +33,19 @@ export const extSpotifyRedirectUrlAtom = atomWithStorage(
 );
 
 /**
- * Spotify的access token
+ * Spotify API所需的Access Token
  */
 export const extSpotifyAccessTokenAtom = atomWithStorage(
 	"extSpotifyAccessTokenAtom",
 	"AccessToken",
+);
+
+/**
+ * Spotify API轮询间隔 默认500(ms)
+ */
+export const extSpotifyIntervalAtom = atomWithStorage(
+	"extSpotifyIntervalAtom",
+	800,
 );
 
 
