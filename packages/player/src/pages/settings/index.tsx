@@ -26,6 +26,7 @@ import {
 // extSpotify
 import { parseTTML } from "@applemusic-like-lyrics/lyric";
 import {
+    hideLyricViewAtom,
     musicAlbumNameAtom,
     musicArtistsAtom,
     musicCoverAtom,
@@ -378,7 +379,10 @@ export const SettingsPage: FC = () => {
     const [musicAlbumName, setMusicAlbumName] = useAtom(musicAlbumNameAtom);
     const [musicArtists, setMusicArtists] = useAtom(musicArtistsAtom);
     const [musicLyricLines, setMusicLyricLines] = useAtom(musicLyricLinesAtom);
+    const [hideLyricView, setHideLyricView] = useAtom(hideLyricViewAtom);
     const [fetching, setFetching] = useState(false);
+    // hideLyricViewAtom,
+    // isLyricPageOpenedAtom,
 
     const accessToken = extSpotifyAccessToken;
 
@@ -446,8 +450,10 @@ export const SettingsPage: FC = () => {
                         // 获取到歌词后进行转换
                         const lyricsData = await lyricsResponse.text();
                         const parsedResult = parseTTML(lyricsData).lines;
+                        setHideLyricView(false);
                         setMusicLyricLines(parsedResult);
                     } else {
+                        setHideLyricView(true);
                         setMusicLyricLines([]);
                         console.log("extSoptify::Github-未搜索到/Proxy-未尝试");
                     }
@@ -467,12 +473,15 @@ export const SettingsPage: FC = () => {
                         if (lyricsProxyResponse.status === 200) {
                             const lyricsProxyData = await lyricsProxyResponse.text();
                             const parsedProxyResult = parseTTML(lyricsProxyData).lines;
+                            setHideLyricView(false);
                             setMusicLyricLines(parsedProxyResult);
                         } else {
+                            setHideLyricView(true);
                             setMusicLyricLines([]);
                             console.log("extSoptify::Github-访问失败/Proxy-未搜索到");
                         }
                     } catch (error) {
+                        setHideLyricView(true);
                         setMusicLyricLines([]);
                         console.log("extSpotify::Github-访问失败/Proxy-访问失败")
                     }
